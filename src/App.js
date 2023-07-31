@@ -32,22 +32,45 @@ function Logo() {
 
 //here we used Array.from to generate 20 numbers in a list of options. Then we mapped that values to option element
 function Form() {
+  const [description, setDescription] = useState("");
+  const [quantity, setQuantity] = useState(1);
+
   //prevent default form behaviour (HTTPS request)
   function handleSubmit(event) {
     event.preventDefault();
+    if (!description) return; // if whe have not entered description function will retun and not create object New item
+    const newItem = {
+      description,
+      quantity,
+      packed: false,
+      key: Date.now(),
+    };
+    console.log(newItem);
+    // return form to inital state after submission
+    setDescription("");
+    setQuantity(1);
   }
 
+  // on select element we convert target value to number with Number(event.target.value)
   return (
     <form className="add-form" onSubmit={handleSubmit}>
       <h3>What do you need for your trip? 🧳</h3>
-      <select>
+      <select
+        value={quantity}
+        onChange={(event) => setQuantity(Number(event.target.value))}
+      >
         {Array.from({ length: 20 }, (_, i) => i + 1).map((num) => (
           <option value={num} key={num}>
             {num}
           </option>
         ))}
       </select>
-      <input type="text" placeholder="Item..."></input>
+      <input
+        type="text"
+        placeholder="Item..."
+        value={description}
+        onChange={(event) => setDescription(event.target.value)}
+      ></input>
       <button type="submit">ADD</button>
     </form>
   );
