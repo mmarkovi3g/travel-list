@@ -11,11 +11,19 @@ const initialItems = [
 ];
 
 export default function App() {
+  const [items, setItems] = useState([]); //moved state up from FORM component so it could render later
+
+  //function for adding new items
+  //we cant mutate existing array with push etc. so we need to destructure existing items and add new inputed item
+  function handleAddItems(item) {
+    setItems((items) => [...items, item]);
+  }
+
   return (
     <div className="app">
       <Logo />
-      <Form />
-      <PackingList />
+      <Form onHandleAddItems={handleAddItems} />
+      <PackingList items={items} />
       <Stats />
     </div>
   );
@@ -31,14 +39,17 @@ function Logo() {
 }
 
 //here we used Array.from to generate 20 numbers in a list of options. Then we mapped that values to option element
-function Form() {
+function Form({ onHandleAddItems }) {
   const [description, setDescription] = useState("");
   const [quantity, setQuantity] = useState(1);
 
-  //prevent default form behaviour (HTTPS request)
   function handleSubmit(event) {
+    //prevent default form behaviour (HTTPS request)
     event.preventDefault();
+
     if (!description) return; // if whe have not entered description function will retun and not create object New item
+    //creating constant for generating object from input form
+
     const newItem = {
       description,
       quantity,
@@ -46,6 +57,10 @@ function Form() {
       key: Date.now(),
     };
     console.log(newItem);
+
+    //calling handleAddItems on submit form to save arrays we inputed
+    onHandleAddItems(newItem);
+
     // return form to inital state after submission
     setDescription("");
     setQuantity(1);
@@ -76,13 +91,18 @@ function Form() {
   );
 }
 
-function PackingList() {
+function PackingList({ items }) {
+  //destructuring items
   return (
     <div className="list">
       <ul>
-        {initialItems.map((item) => (
-          <Item item={item} key={item.id} />
-        ))}
+        {items.map(
+          (
+            item //accepting props from APP
+          ) => (
+            <Item item={item} key={item.id} />
+          )
+        )}
       </ul>
     </div>
   );
