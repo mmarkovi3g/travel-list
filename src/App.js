@@ -2,14 +2,6 @@
 
 import { useState } from "react";
 
-//initial dummy list for rendering
-const initialItems = [
-  { id: 1, description: "Passports", quantity: 2, packed: false },
-  { id: 2, description: "Socks", quantity: 12, packed: false },
-  { id: 3, description: "Documents", quantity: 22, packed: true },
-  { id: 4, description: "T-shirts", quantity: 6, packed: false },
-];
-
 export default function App() {
   const [items, setItems] = useState([]); //moved state up from FORM component so it could render later
 
@@ -19,11 +11,18 @@ export default function App() {
     setItems((items) => [...items, item]);
   }
 
+  //deleting item - takes filtered items and returns new array without item we click on
+  //handleDeleteItem needs to be passed down as prop first to <PackingList> then to <Item> as props
+  function handleDeleteItem(id) {
+    console.log(id);
+    setItems((items) => items.filter((item) => item.id !== id));
+  }
+
   return (
     <div className="app">
       <Logo />
       <Form onHandleAddItems={handleAddItems} />
-      <PackingList items={items} />
+      <PackingList items={items} onDeleteItem={handleDeleteItem} />
       <Stats />
     </div>
   );
@@ -54,7 +53,7 @@ function Form({ onHandleAddItems }) {
       description,
       quantity,
       packed: false,
-      key: Date.now(),
+      id: Date.now(),
     };
     console.log(newItem);
 
@@ -91,7 +90,7 @@ function Form({ onHandleAddItems }) {
   );
 }
 
-function PackingList({ items }) {
+function PackingList({ items, onDeleteItem }) {
   //destructuring items
   return (
     <div className="list">
@@ -100,7 +99,7 @@ function PackingList({ items }) {
           (
             item //accepting props from APP
           ) => (
-            <Item item={item} key={item.id} />
+            <Item item={item} onDeleteItem={onDeleteItem} key={item.id} />
           )
         )}
       </ul>
@@ -109,14 +108,15 @@ function PackingList({ items }) {
 }
 
 //single line ternary operator to add styling to packed items
-function Item({ item }) {
+//to use onDelete item we need callback function with argument (item.id)
+function Item({ item, onDeleteItem }) {
   return (
     <li>
       <span style={item.packed ? { textDecoration: "line-through" } : {}}>
         {item.quantity + " "}
         {item.description}
       </span>
-      <button>❌</button>
+      <button onClick={() => onDeleteItem(item.id)}>❌</button>
     </li>
   );
 }
