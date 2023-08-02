@@ -5,6 +5,10 @@ import { useState } from "react";
 export default function App() {
   const [items, setItems] = useState([]); //moved state up from FORM component so it could render later
 
+  const numOfItems = items.length;
+  const numOfPackedItems = items.filter((item) => item.packed === true).length;
+  const percentageOfPacked = Math.trunc((numOfPackedItems / numOfItems) * 100);
+
   //function for adding new items
   //we cant mutate existing array with push etc. so we need to destructure existing items and add new inputed item
   function handleAddItems(item) {
@@ -14,16 +18,32 @@ export default function App() {
   //deleting item - takes filtered items and returns new array without item we click on
   //handleDeleteItem needs to be passed down as prop first to <PackingList> then to <Item> as props
   function handleDeleteItem(id) {
-    console.log(id);
     setItems((items) => items.filter((item) => item.id !== id));
+  }
+
+  //function on packed (striketrough if packed)
+  function handleToggleItem(id) {
+    setItems((items) =>
+      items.map((item) =>
+        item.id === id ? { ...item, packed: !item.packed } : item
+      )
+    );
   }
 
   return (
     <div className="app">
       <Logo />
       <Form onHandleAddItems={handleAddItems} />
-      <PackingList items={items} onDeleteItem={handleDeleteItem} />
-      <Stats />
+      <PackingList
+        items={items}
+        onDeleteItem={handleDeleteItem}
+        onToggleItems={handleToggleItem}
+      />
+      <Stats
+        numOfItems={numOfItems}
+        numOfPackedItems={numOfPackedItems}
+        percentageOfPacked={percentageOfPacked}
+      />
     </div>
   );
 }
@@ -90,7 +110,7 @@ function Form({ onHandleAddItems }) {
   );
 }
 
-function PackingList({ items, onDeleteItem }) {
+function PackingList({ items, onDeleteItem, onToggleItems }) {
   //destructuring items
   return (
     <div className="list">
@@ -99,7 +119,12 @@ function PackingList({ items, onDeleteItem }) {
           (
             item //accepting props from APP
           ) => (
-            <Item item={item} onDeleteItem={onDeleteItem} key={item.id} />
+            <Item
+              item={item}
+              onDeleteItem={onDeleteItem}
+              key={item.id}
+              onToggleItems={onToggleItems}
+            />
           )
         )}
       </ul>
@@ -109,9 +134,18 @@ function PackingList({ items, onDeleteItem }) {
 
 //single line ternary operator to add styling to packed items
 //to use onDelete item we need callback function with argument (item.id)
-function Item({ item, onDeleteItem }) {
+function Item({ item, onDeleteItem, onToggleItems }) {
+  const [packed, setPacked] = useState(false);
+
   return (
     <li>
+      <input
+        type="checkbox"
+        value={item.packed}
+        onChange={() => {
+          onToggleItems(item.id);
+        }}
+      />
       <span style={item.packed ? { textDecoration: "line-through" } : {}}>
         {item.quantity + " "}
         {item.description}
@@ -121,10 +155,22 @@ function Item({ item, onDeleteItem }) {
   );
 }
 
-function Stats() {
+function Stats({ numOfItems, numOfPackedItems, percentageOfPacked }) {
+  if (!numOfItems)
+    return (
+      <p className="stats">
+        <em>Start adding some items to your packing list 🧳</em>
+      </p>
+    );
+
   return (
     <footer className="stats">
-      <em>You have X items on your list, and you already packed X (X%)</em>
+      <em>
+        {percentageOfPacked === 100
+          ? "You are ready to go. ✈️"
+          : `You have ${numOfItems} items on your list, and you already packed
+        ${numOfPackedItems} (${percentageOfPacked} %)}`}
+      </em>
     </footer>
   );
 }
